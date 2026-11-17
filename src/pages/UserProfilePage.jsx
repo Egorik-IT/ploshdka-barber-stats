@@ -1,3 +1,4 @@
+import useUnsavedChanges from '../hooks/useUnsavedChanges';
 import YclientsStaffBranches from '../components/YclientsStaffBranches';
 import YclientsEmployeeDetails from '../components/YclientsEmployeeDetails';
 import { isHttpUrl } from '../../shared/validation.js';
@@ -5,7 +6,7 @@ import { toggleStaffLink } from '../utils/yclients';
 import { fetchApi, readJsonResponse } from '../utils/api';
 import { getInitials, roleNames } from '../utils/users';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -55,7 +56,9 @@ function getEditorSnapshot(form, overrides) {
                 staffId: String(link.staffId),
             }))
             .sort((a, b) => a.branchId.localeCompare(b.branchId)),
-        overrides,
+        overrides: Object.fromEntries(
+            Object.entries(overrides).sort(([a], [b]) => a.localeCompare(b))
+        ),
     });
 }
 
@@ -92,26 +95,13 @@ export default function UserProfilePage({ currentUser }) {
     const [branchesError, setBranchesError] = useState('');
     const [staffError, setStaffError] = useState('');
 
-    const savedSnapshot = useRef(null);
+    const [savedSnapshot, setSavedSnapshot] = useState(null);
     const hasUnsavedChanges =
         form !== null &&
-        savedSnapshot.current !== null &&
-        getEditorSnapshot(form, overrides) !== savedSnapshot.current;
+        savedSnapshot !== null &&
+        getEditorSnapshot(form, overrides) !== savedSnapshot;
 
-    useEffect(() => {
-        if (!hasUnsavedChanges) return;
-
-        function handleBeforeUnload(event) {
-            event.preventDefault();
-            event.returnValue = '';
-        }
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, [hasUnsavedChanges]);
+    useUnsavedChanges({ isDirty: hasUnsavedChanges });
 
     useEffect(() => {
         const controller = new AbortController();
@@ -145,10 +135,10 @@ export default function UserProfilePage({ currentUser }) {
                 const initialForm = makeForm(result.user);
                 const initialOverrides = result.permissionsOverride || {};
 
-                savedSnapshot.current = getEditorSnapshot(
+                setSavedSnapshot(getEditorSnapshot(
                     initialForm,
                     initialOverrides
-                );
+                ));
 
                 setUser(result.user);
                 setForm(initialForm);
@@ -348,10 +338,10 @@ export default function UserProfilePage({ currentUser }) {
             const savedForm = makeForm(result.user);
             const savedOverrides = result.permissionsOverride || {};
 
-            savedSnapshot.current = getEditorSnapshot(
+            setSavedSnapshot(getEditorSnapshot(
                 savedForm,
                 savedOverrides
-            );
+            ));
 
             setUser(result.user);
             setForm(savedForm);
@@ -382,16 +372,6 @@ export default function UserProfilePage({ currentUser }) {
             <Link
                 to="/users"
                 className="user-profile-back"
-                onClick={event => {
-                    if (
-                        hasUnsavedChanges &&
-                        !window.confirm(
-                            'Есть несохранённые изменения. Выйти без сохранения?'
-                        )
-                    ) {
-                        event.preventDefault();
-                    }
-                }}
             >
                 <ArrowLeft size={18} />
                 <span>К списку пользователей</span>

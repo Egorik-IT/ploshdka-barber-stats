@@ -1,15 +1,9 @@
 
-import { UserRound, MapPin, Phone, Mail, BriefcaseBusiness } from 'lucide-react';
+import { Phone, Mail } from 'lucide-react';
+import { getInitials } from '../utils/users';
 
 function EmployeeAvatar({ employee, name }) {
-    const initials = String(name)
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map(part => part[0])
-        .join('')
-        .toUpperCase() || '?';
+    const initials = getInitials(String(name));
 
     return (
         <div className="yclients-details-avatar">

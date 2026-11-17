@@ -1,0 +1,87 @@
+.unsaved-dialog {
+    width: min(490px, calc(100% - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 26px;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgb(0 0 0 / 25%);
+}
+
+.unsaved-dialog::backdrop {
+    background: rgb(0 0 0 / 65%);
+}
+
+.unsaved-dialog-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.unsaved-dialog-heading svg {
+    flex-shrink: 0;
+    color: var(--accent);
+}
+
+.unsaved-dialog h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.unsaved-dialog p {
+    margin: 16px 0 24px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.unsaved-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.unsaved-dialog-actions button {
+    padding: 11px 15px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 9px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.unsaved-dialog-actions .unsaved-dialog-leave {
+    background: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent);
+}
+
+.unsaved-dialog-actions button:hover {
+    opacity: 0.85;
+}
+
+.unsaved-dialog-actions button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+    .unsaved-dialog {
+        padding: 20px;
+    }
+
+    .unsaved-dialog h2 {
+        font-size: 18px;
+    }
+
+    .unsaved-dialog-actions {
+        flex-direction: column;
+    }
+}

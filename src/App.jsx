@@ -1,10 +1,13 @@
+import UnsavedChangesProvider from './components/UnsavedChangesProvider';
+import useUnsavedChanges from './hooks/useUnsavedChanges';
 import { fetchApi } from './utils/api';
 import './styles/shared.css';
 
 import { useEffect, useState } from 'react';
 
 import {
-  BrowserRouter,
+  createBrowserRouter,
+  RouterProvider,
   Routes,
   Route,
   Navigate,
@@ -19,7 +22,8 @@ import MainLayout from './layouts/MainLayout';
 
 import './App.css';
 
-function App() {
+function AppContent() {
+  const { confirmLeave } = useUnsavedChanges();
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') === 'light'
       ? 'light'
@@ -70,24 +74,26 @@ function App() {
 
   // Выход
   async function handleLogout() {
-    try {
-      const response = await fetchApi(
-        '/api/auth/logout',
-        {
-          method: 'POST',
+    await confirmLeave(async () => {
+      try {
+        const response = await fetchApi(
+          '/api/auth/logout',
+          {
+            method: 'POST',
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Не удалось завершить сессию');
         }
-      );
 
-      if (!response.ok) {
-        throw new Error('Не удалось завершить сессию');
+        setUser(null);
+
+      } catch (error) {
+        console.error('Ошибка выхода:', error);
+        alert('Не удалось выйти из аккаунта. Попробуйте ещё раз.');
       }
-
-      setUser(null);
-
-    } catch (error) {
-      console.error('Ошибка выхода:', error);
-      alert('Не удалось выйти из аккаунта. Попробуйте ещё раз.');
-    }
+    });
   }
 
   if (!authChecked) {
@@ -95,72 +101,83 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <div className="app">
-        <Routes>
+    <div className="app">
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            user
+              ? <Navigate to="/dashboard" replace />
+              : (
+                <LoginPage
+                  onLogin={setUser}
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                />
+              )
+          }
+        />
+
+        <Route
+          element={
+            user
+              ? (
+                <MainLayout
+                  user={user}
+                  onLogout={handleLogout}
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                />
+              )
+              : <Navigate to="/login" replace />
+          }
+        >
           <Route
-            path="/login"
-            element={
-              user
-                ? <Navigate to="/dashboard" replace />
-                : (
-                  <LoginPage
-                    onLogin={setUser}
-                    theme={theme}
-                    toggleTheme={toggleTheme}
-                  />
-                )
-            }
+            path="/dashboard"
+            element={<DashboardPage user={user} />}
           />
 
           <Route
-            element={
-              user
-                ? (
-                  <MainLayout
-                    user={user}
-                    onLogout={handleLogout}
-                    theme={theme}
-                    toggleTheme={toggleTheme}
-                  />
-                )
-                : <Navigate to="/login" replace />
-            }
-          >
-            <Route
-              path="/dashboard"
-              element={<DashboardPage user={user} />}
-            />
-
-            <Route
-              path="/users"
-              element={<UsersPage currentUser={user} />}
-            />
-
-            <Route
-              path="/users/:id"
-              element={<UserProfilePage currentUser={user} />}
-            />
-
-            <Route
-              path="/branches"
-              element={<BranchesPage currentUser={user} />}
-            />
-          </Route>
+            path="/users"
+            element={<UsersPage currentUser={user} />}
+          />
 
           <Route
-            path="*"
-            element={
-              <Navigate
-                to={user ? '/dashboard' : '/login'}
-                replace
-              />
-            }
+            path="/users/:id"
+            element={<UserProfilePage currentUser={user} />}
           />
-        </Routes>
-      </div>
-    </BrowserRouter>
+
+          <Route
+            path="/branches"
+            element={<BranchesPage currentUser={user} />}
+          />
+        </Route>
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to={user ? '/dashboard' : '/login'}
+              replace
+            />
+          }
+        />
+      </Routes>
+    </div>
   );
 }
 
-export default App;
+const router = createBrowserRouter([
+  {
+    path: '*',
+    element: (
+      <UnsavedChangesProvider>
+        <AppContent />
+      </UnsavedChangesProvider>
+    ),
+  },
+]);
+
+export default function App() {
+  return <RouterProvider router={router} />;
+}
