@@ -1,0 +1,169 @@
+.branches-error,
+.branches-form-error {
+    color: var(--color-error);
+}
+
+.branches-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.branches-empty h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.branches-empty p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.branches-muted {
+    color: var(--text-secondary);
+}
+
+.branches-copy-button {
+    display: inline-flex;
+}
+
+.branches-edit-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 11px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.branches-edit-button:hover,
+.branches-form-field input:focus,
+.branches-sync-button:hover {
+    border-color: var(--accent);
+}
+
+.branches-modal {
+    -ms-overflow-style: none;
+}
+
+.branches-modal::-webkit-scrollbar {
+    display: none;
+}
+
+.branches-close-button:hover,
+.branches-sync-notice button:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.branches-cancel-button:disabled,
+.branches-submit-button:disabled,
+.branches-close-button:disabled,
+.branches-sync-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =====================================
+   СИНХРОНИЗАЦИЯ СОТРУДНИКОВ YCLIENTS
+===================================== */
+
+.branches-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.branches-sync-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 8px 11px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.branches-staff-count {
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.branches-sync-date {
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.branches-sync-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.branches-sync-notice button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Синхронизация YCLIENTS */
+
+.branches-sync-button:disabled:hover {
+    border-color: var(--border-default);
+}
+
+.branches-sync-spinning {
+    animation: branches-sync-rotate 1s linear infinite;
+}
+
+@keyframes branches-sync-rotate {
+
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,19 @@
+#root,
+.app {
+    min-height: 100vh;
+}
+
+.theme-control {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+}
+
+@media (max-width: 480px) {
+
+    .theme-control {
+        top: 16px;
+        right: 16px;
+    }
+}

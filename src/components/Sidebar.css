@@ -1,0 +1,324 @@
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    transition: width 0.25s ease,
+        min-width 0.25s ease,
+        transform 0.25s ease;
+    z-index: 100;
+}
+
+.sidebar-collapsed {
+    width: 76px;
+    min-width: 76px;
+}
+
+/* ЛОГОТИП */
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 94px;
+    padding: 20px 18px;
+}
+
+.sidebar-brand-text,
+.sidebar-profile-info {
+    min-width: 0;
+}
+
+.sidebar-brand-title {
+    color: var(--accent);
+    font-size: 21px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+}
+
+.sidebar-brand-subtitle {
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.7px;
+}
+
+/* КНОПКИ */
+
+.sidebar-collapse-button,
+.sidebar-close-button,
+.sidebar-mobile-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.sidebar-collapse-button:hover,
+.sidebar-close-button:hover,
+.sidebar-mobile-button:hover,
+.sidebar-nav-item:hover,
+.sidebar-logout:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.sidebar-close-button,
+.sidebar-collapsed .sidebar-brand-text,
+.sidebar-collapsed .sidebar-nav-item span,
+.sidebar-collapsed .sidebar-theme-setting>span,
+.sidebar-collapsed .sidebar-profile-info,
+.sidebar-collapsed .sidebar-logout span,
+.sidebar-mobile-header,
+.sidebar-overlay {
+    display: none;
+}
+
+.sidebar-collapsed .sidebar-brand {
+    justify-content: center;
+    padding: 20px 10px;
+}
+
+/* НАВИГАЦИЯ */
+
+.sidebar-nav-label {
+    padding: 22px 24px 12px;
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
+}
+
+.sidebar-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0 12px;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    width: 100%;
+    min-height: 46px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s,
+        color 0.2s;
+}
+
+.sidebar-nav-item svg,
+.sidebar-logout svg {
+    flex-shrink: 0;
+}
+
+.sidebar-nav-active,
+.sidebar-nav-active:hover {
+    background: var(--accent);
+    color: var(--accent-text);
+}
+
+.sidebar-collapsed .sidebar-nav-label {
+    visibility: hidden;
+}
+
+.sidebar-collapsed .sidebar-nav-item,
+.sidebar-collapsed .sidebar-logout {
+    justify-content: center;
+    padding: 12px;
+}
+
+/* НИЖНЯЯ ЧАСТЬ */
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding: 16px 12px 22px;
+}
+
+.sidebar-theme-setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 10px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sidebar-theme-setting .theme-control,
+.sidebar-theme-setting .theme-toggle {
+    position: static;
+    inset: auto;
+}
+
+.sidebar-collapsed .sidebar-theme-setting {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+/* ПРОФИЛЬ */
+
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+    padding: 8px 10px 16px;
+}
+
+.sidebar-avatar {
+    font-size: 13px;
+    font-weight: 800;
+    overflow: hidden;
+}
+
+.sidebar-avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.sidebar-profile-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.sidebar-profile-role {
+    margin-top: 3px;
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+/* ВЫХОД */
+
+.sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sidebar-collapsed .sidebar-profile {
+    justify-content: center;
+    padding: 8px 0 16px;
+}
+
+/* МОБИЛЬНОЕ МЕНЮ */
+
+@media (max-width: 768px) {
+
+    .sidebar,
+    .sidebar-collapsed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        min-width: 260px;
+        height: 100dvh;
+        transform: translateX(-100%);
+        overflow-y: auto;
+    }
+
+    .sidebar-open {
+        transform: translateX(0);
+    }
+
+    .sidebar-brand,
+    .sidebar-collapsed .sidebar-brand {
+        justify-content: space-between;
+        padding: 20px 18px;
+    }
+
+    .sidebar-collapsed .sidebar-brand-text,
+    .sidebar-collapsed .sidebar-profile-info {
+        display: block;
+    }
+
+    .sidebar-collapse-button {
+        display: none;
+    }
+
+    .sidebar-close-button,
+    .sidebar-mobile-button {
+        display: flex;
+    }
+
+    .sidebar-collapsed .sidebar-nav-label {
+        visibility: visible;
+    }
+
+    .sidebar-collapsed .sidebar-nav-item,
+    .sidebar-collapsed .sidebar-logout {
+        justify-content: flex-start;
+        padding: 12px 14px;
+    }
+
+    .sidebar-collapsed .sidebar-nav-item span,
+    .sidebar-collapsed .sidebar-theme-setting>span,
+    .sidebar-collapsed .sidebar-logout span {
+        display: inline;
+    }
+
+    .sidebar-collapsed .sidebar-theme-setting {
+        justify-content: space-between;
+        padding: 12px 10px;
+    }
+
+    .sidebar-collapsed .sidebar-profile {
+        justify-content: flex-start;
+        padding: 8px 10px 16px;
+    }
+
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 90;
+        border: none;
+        background: rgba(0, 0, 0, 0.65);
+    }
+
+    .sidebar-mobile-header {
+        display: flex;
+        align-items: center;
+        height: 60px;
+        padding: 0 18px;
+        background: var(--bg-page);
+    }
+}

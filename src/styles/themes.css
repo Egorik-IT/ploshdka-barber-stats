@@ -1,0 +1,44 @@
+:root,
+:root[data-theme='dark'] {
+    /* Фоны */
+    --bg-page: #0a0a0a;
+    --bg-surface: #242424;
+    --bg-secondary: #303030;
+    --bg-sidebar: #171717;
+
+    /* Текст */
+    --text-primary: #ffffff;
+    --text-secondary: #a3a3a3;
+
+    /* Границы */
+    --border-default: #404040;
+
+    /* Акцент */
+    --accent: #e8cc27;
+    --accent-text: #151515;
+
+    /* Состояния */
+    --color-error: #ff7777;
+}
+
+:root[data-theme='light'] {
+    /* Фоны */
+    --bg-page: #f7f7f5;
+    --bg-surface: #ffffff;
+    --bg-secondary: #eeeeeb;
+    --bg-sidebar: #ffffff;
+
+    /* Текст */
+    --text-primary: #151515;
+    --text-secondary: #666666;
+
+    /* Границы */
+    --border-default: #dedede;
+
+    /* Акцент */
+    --accent: #e8cc27;
+    --accent-text: #151515;
+
+    /* Состояния */
+    --color-error: #c62828;
+}

@@ -1,0 +1,391 @@
+/* КНОПКА ДОБАВЛЕНИЯ */
+
+.users-add-button {
+    transition: opacity 0.2s;
+}
+
+/* СООБЩЕНИЯ */
+
+.users-error,
+.users-form-error {
+    color: var(--color-error);
+}
+
+/* ПОЛЬЗОВАТЕЛЬ И АВАТАР */
+
+.users-person-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+.users-person-link:hover .users-name,
+.users-staff-branch-selected {
+    color: var(--accent);
+}
+
+.users-name {
+    transition: color 0.2s;
+}
+
+.users-avatar {
+    position: relative;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.users-avatar-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.users-avatar-initials {
+    font-size: 13px;
+    font-weight: 800;
+}
+
+/* ПОМЕТКА ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ */
+
+.users-self-badge {
+    white-space: nowrap;
+}
+
+/* ЛОГИН И КОПИРОВАНИЕ */
+
+.users-copy-button {
+    display: flex;
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s;
+}
+
+.users-copy-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* МОДАЛЬНОЕ ОКНО */
+
+.users-modal-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* ФОРМА */
+
+.users-form-field input:focus,
+.users-form-field select:focus,
+.users-staff-item:hover:not(:disabled),
+.users-staff-item-selected {
+    border-color: var(--accent);
+}
+
+.users-password-wrapper {
+    position: relative;
+}
+
+.users-password-wrapper input {
+    padding-right: 48px;
+}
+
+.users-password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.users-password-toggle:hover {
+    color: var(--text-primary);
+}
+
+.users-form-actions {
+    margin-top: 4px;
+}
+
+.users-cancel-button:disabled,
+.users-submit-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ДОПОЛНИТЕЛЬНЫЕ ПОЛЯ ФОРМЫ */
+
+.users-form-divider {
+    height: 1px;
+    background: var(--border-default);
+    margin: 2px 0;
+}
+
+.users-form-group-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.users-form-group-heading h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.users-form-group-heading p,
+.users-staff-help p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.users-staff-item-info strong {
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* ======================================
+   ВЫБОР СОТРУДНИКОВ YCLIENTS
+====================================== */
+
+.users-staff-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.users-staff-search>svg {
+    position: absolute;
+    left: 13px;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.users-form-field .users-staff-search input {
+    padding-left: 40px;
+}
+
+.users-staff-branches {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.users-staff-branch {
+    overflow: hidden;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 11px;
+}
+
+.users-staff-branch-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 49px;
+    padding: 13px 14px;
+    background: transparent;
+    color: var(--text-primary);
+    border: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.users-staff-branch-toggle:hover {
+    background: var(--bg-surface);
+}
+
+.users-staff-branch-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.users-staff-branch-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 25px;
+    height: 23px;
+    padding: 0 6px;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.users-staff-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border-top: 1px solid var(--border-default);
+}
+
+.users-staff-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 9px;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.users-staff-item:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.users-staff-item-info>span,
+.users-staff-item-info small {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.users-staff-item-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 25px;
+    height: 25px;
+    color: var(--accent-text);
+    border: 1px solid var(--border-default);
+    border-radius: 7px;
+}
+
+.users-staff-item-selected .users-staff-item-check {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.users-staff-empty {
+    margin: 0;
+    padding: 12px 8px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.users-staff-selection-summary {
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 700;
+    margin: 8px 0px;
+}
+
+.users-staff-help {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 9px;
+}
+
+.users-staff-help>svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--text-secondary);
+}
+
+.users-staff-help a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.users-staff-help a:hover {
+    text-decoration: underline;
+}
+
+.users-staff-branch-toggle:focus-visible,
+.users-staff-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+/* Аватар сотрудника YCLIENTS */
+
+.users-staff-avatar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--surface-secondary, rgba(128, 128, 128, 0.15));
+}
+
+.users-staff-avatar-initials {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary, inherit);
+}
+
+.users-staff-avatar-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+.users-staff-item-specialization {
+    font-size: 12px;
+    opacity: 0.75;
+}
+
+.users-staff-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.users-staff-item-info strong,
+.users-staff-item-info span,
+.users-staff-item-info small {
+    overflow-wrap: anywhere;
+}
+
+/* АДАПТИВНОСТЬ */
+
+@media (max-width: 768px) {
+
+    .users-card {
+        min-height: 155px;
+    }
+}

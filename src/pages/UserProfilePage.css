@@ -1,0 +1,821 @@
+.user-profile-content {
+    width: 100%;
+    color: var(--text-primary);
+}
+
+.user-profile-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 30px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s ease;
+}
+
+.user-profile-back:hover,
+.user-profile-copy:hover,
+.user-profile-permission-reset:hover {
+    color: var(--accent);
+}
+
+.user-profile-heading {
+    margin-bottom: 28px;
+}
+
+.user-profile-heading h1 {
+    margin: 0 0 9px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.user-profile-heading p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.user-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 30px;
+    margin-bottom: 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 14px;
+}
+
+.user-profile-avatar {
+    width: 92px;
+    height: 92px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-text);
+    font-size: 29px;
+    font-weight: 700;
+}
+
+.user-profile-avatar img {
+    /* position: absolute; */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-profile-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+}
+
+.user-profile-name-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.user-profile-name-row h2 {
+    margin: 0;
+    font-size: 23px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.user-profile-role {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.user-profile-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.user-profile-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.user-profile-status.is-active {
+    color: #22c55e;
+}
+
+.user-profile-status.is-inactive {
+    color: var(--text-secondary);
+}
+
+.user-profile-section {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.user-profile-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 22px 26px;
+    border-bottom: 1px solid var(--border-default);
+    color: var(--text-primary);
+}
+
+.user-profile-section-heading h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.user-profile-fields {
+    padding: 0 26px;
+}
+
+.user-profile-field {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 20px;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.user-profile-field:last-child,
+.user-profile-permission-group:last-of-type {
+    border-bottom: none;
+}
+
+.user-profile-label {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.user-profile-value {
+    font-size: 14px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.user-profile-value-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+}
+
+.user-profile-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    padding: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 7px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.user-profile-message {
+    padding: 28px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 14px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.user-profile-error {
+    color: var(--color-error);
+}
+
+/* ==========================================
+   РЕДАКТИРОВАНИЕ ПРОФИЛЯ
+   ========================================== */
+
+.user-profile-section-spaced,
+.user-profile-section+.user-profile-section {
+    margin-top: 24px;
+}
+
+.user-profile-input {
+    height: 42px;
+    padding: 0 13px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+}
+
+.user-profile-input:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+
+.user-profile-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.75;
+}
+
+.user-profile-value-row>.user-profile-input {
+    flex: 1;
+}
+
+/* ==========================================
+   ПЕРЕКЛЮЧАТЕЛИ
+   ========================================== */
+
+.user-profile-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 44px;
+    height: 25px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.user-profile-switch input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+button.user-profile-switch.is-on {
+    background: var(--accent);
+}
+
+button.user-profile-switch:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+/* ==========================================
+   РАЗРЕШЕНИЯ
+   ========================================== */
+
+.user-profile-section-subtitle {
+    margin: 7px 0 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.user-profile-permissions {
+    padding: 8px 26px 22px;
+}
+
+.user-profile-permission-group {
+    padding: 18px 0 8px;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.user-profile-permission-group h4 {
+    margin: 0 0 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.user-profile-permission-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 12px 0;
+}
+
+.user-profile-permission-info>span {
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.user-profile-permission-info>small {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.user-profile-permission-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.user-profile-permission-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+/* ==========================================
+   СОХРАНЕНИЕ
+   ========================================== */
+
+.user-profile-save-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 24px;
+    padding-bottom: 20px;
+}
+
+.user-profile-save-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.user-profile-save-error {
+    color: var(--color-error);
+    font-size: 13px;
+}
+
+.user-profile-save-success {
+    color: #22c55e;
+    font-size: 13px;
+}
+
+.user-profile-save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 43px;
+    padding: 0 20px;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.user-profile-save-button:hover {
+    opacity: 0.85;
+}
+
+.user-profile-save-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Форма редактирования */
+
+.user-profile-edit-form,
+.user-profile-section .users-staff-item {
+    width: 100%;
+    min-width: 0;
+}
+
+.user-profile-section-heading>div,
+.user-profile-section .users-staff-branch,
+.user-profile-section .users-staff-list,
+.user-profile-section .users-staff-item-info {
+    min-width: 0;
+}
+
+.user-profile-section-subtitle,
+.user-profile-permissions-subtitle {
+    margin: 7px 0 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.user-profile-section-heading>svg {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+/* Поля */
+
+.user-profile-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.user-profile-value-row .user-profile-input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Статус аккаунта */
+
+.user-profile-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    width: fit-content;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.user-profile-checkbox input {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* Поле нового пароля */
+
+.user-profile-password {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+}
+
+.user-profile-password .user-profile-input {
+    width: 100%;
+    padding-right: 48px;
+}
+
+.user-profile-password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 7px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.user-profile-password-toggle:hover {
+    color: var(--accent);
+    background: var(--bg-secondary);
+}
+
+.user-profile-password-toggle:disabled,
+.user-profile-permission-reset:disabled,
+button.user-profile-switch:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ==========================================
+   ПРИВЯЗКИ YCLIENTS
+   ========================================== */
+
+.user-profile-section .users-form-field>label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.user-profile-section .users-staff-search {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.user-profile-section .users-staff-branches {
+    width: 100%;
+    min-width: 0;
+    margin: 16px 0px;
+}
+
+.user-profile-section .users-staff-branch-toggle {
+    width: 100%;
+}
+
+.user-profile-section .users-staff-item-info strong,
+.user-profile-section .users-staff-item-info span {
+    overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   РАЗРЕШЕНИЯ
+   ========================================== */
+
+.user-profile-permissions-empty {
+    margin: 0;
+    padding: 24px 26px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* ==========================================
+   ПЕРЕКЛЮЧАТЕЛИ РАЗРЕШЕНИЙ
+
+   В JSX используется:
+   <button className="user-profile-switch is-on">
+       <span />
+   </button>
+   ========================================== */
+
+button.user-profile-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 44px;
+    height: 25px;
+    min-width: 44px;
+    min-height: 25px;
+    padding: 0;
+    background: var(--border-default);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+button.user-profile-switch>span {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    display: block;
+    width: 19px;
+    height: 19px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    transition: transform 0.2s ease,
+        background 0.2s ease;
+}
+
+button.user-profile-switch.is-on>span {
+    transform: translateX(19px);
+    background: var(--accent-text, #ffffff);
+}
+
+
+/* Данные сотрудника YCLIENTS */
+
+.yclients-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.yclients-details-card {
+    padding: 20px;
+    border: 1px solid var(--border-color, rgba(128, 128, 128, 0.2));
+    border-radius: 14px;
+    background: var(--surface-secondary, rgba(128, 128, 128, 0.04));
+}
+
+.yclients-details-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.yclients-details-avatar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgba(128, 128, 128, 0.18);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.yclients-details-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.yclients-details-identity {
+    flex: 1;
+    min-width: 0;
+}
+
+.yclients-details-identity h4 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.yclients-details-specialization {
+    font-size: 13px;
+    opacity: 0.75;
+}
+
+.yclients-details-unavailable {
+    font-size: 13px;
+    opacity: 0.65;
+}
+
+.yclients-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color, rgba(128, 128, 128, 0.15));
+}
+
+.yclients-details-field {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.yclients-details-label {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.yclients-details-value {
+    font-size: 14px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.yclients-details-value a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.yclients-details-value a:hover {
+    text-decoration: underline;
+}
+
+.yclients-details-message {
+    padding: 8px 26px;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+
+
+/* ==========================================
+АДАПТИВНОСТЬ
+========================================== */
+
+@media (max-width: 600px) {
+    .yclients-details-card {
+        padding: 16px;
+    }
+
+    .yclients-details-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .yclients-details-avatar {
+        flex-basis: 52px;
+        width: 52px;
+        height: 52px;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .user-profile-content {
+        padding: 24px 18px 50px;
+    }
+
+    .user-profile-heading h1 {
+        font-size: 24px;
+    }
+
+    .user-profile-card {
+        padding: 22px;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .user-profile-avatar {
+        width: 70px;
+        height: 70px;
+        font-size: 23px;
+    }
+
+    .user-profile-name-row h2 {
+        font-size: 19px;
+    }
+
+    .user-profile-fields {
+        padding: 0 20px;
+    }
+
+    .user-profile-field {
+        padding: 16px 0;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 9px;
+    }
+
+    .user-profile-permissions {
+        padding: 8px 20px 20px;
+    }
+
+    .user-profile-permission-row {
+        gap: 12px;
+    }
+
+    .user-profile-save-area {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .user-profile-save-button {
+        width: 100%;
+    }
+
+    .user-profile-permission-info {
+        flex: 1;
+    }
+
+    .user-profile-permission-actions {
+        gap: 8px;
+    }
+}
+
+@media (max-width: 420px) {
+
+    .user-profile-content {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .user-profile-card {
+        padding: 18px;
+        gap: 14px;
+    }
+
+    .user-profile-section-heading {
+        padding: 18px;
+    }
+
+    .user-profile-permissions {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .user-profile-permission-row {
+        align-items: flex-start;
+    }
+}
