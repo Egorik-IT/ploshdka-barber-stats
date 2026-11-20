@@ -1,5 +1,8 @@
+import useViewMode, { canPreviewPage } from '../hooks/useViewMode';
+import ViewModeTabs from '../components/ViewModeTabs';
+import '../styles/reports.css';
 
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 import Sidebar from '../components/Sidebar';
 import './MainLayout.css';
@@ -8,8 +11,9 @@ export default function MainLayout({
     user,
     onLogout,
     theme,
-    toggleTheme,
 }) {
+    const { mode, canPreview } = useViewMode();
+    const location = useLocation();
     return (
         <div
             className="main-layout"
@@ -18,12 +22,11 @@ export default function MainLayout({
             <Sidebar
                 user={user}
                 onLogout={onLogout}
-                theme={theme}
-                toggleTheme={toggleTheme}
             />
 
             <main className="main-layout-content">
-                <Outlet />
+                <ViewModeTabs/>
+                {canPreviewPage(mode, location.pathname) ? <Outlet /> : <div className="report-content"><h1>Раздел недоступен в этом режиме</h1><p>{canPreview ? 'Переключите предпросмотр на руководителя или выберите раздел в меню.' : 'Ваша роль не имеет доступа к этому разделу. Выберите раздел в меню.'}</p></div>}
             </main>
         </div>
     );

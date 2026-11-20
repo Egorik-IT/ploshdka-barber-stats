@@ -13,10 +13,8 @@
     font-size: 13px;
     transition: color 0.2s ease;
 }
-
 .user-profile-back:hover,
-.user-profile-copy:hover,
-.user-profile-permission-reset:hover {
+.user-profile-copy:hover {
     color: var(--accent);
 }
 
@@ -153,9 +151,7 @@
     padding: 20px 0;
     border-bottom: 1px solid var(--border-default);
 }
-
-.user-profile-field:last-child,
-.user-profile-permission-group:last-of-type {
+.user-profile-field:last-child {
     border-bottom: none;
 }
 
@@ -290,61 +286,8 @@ button.user-profile-switch:focus-visible {
     line-height: 1.5;
 }
 
-.user-profile-permissions {
+.user-profile-staff-content {
     padding: 8px 26px 22px;
-}
-
-.user-profile-permission-group {
-    padding: 18px 0 8px;
-    border-bottom: 1px solid var(--border-default);
-}
-
-.user-profile-permission-group h4 {
-    margin: 0 0 12px;
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 700;
-}
-
-.user-profile-permission-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 12px 0;
-}
-
-.user-profile-permission-info>span {
-    color: var(--text-primary);
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.user-profile-permission-info>small {
-    color: var(--text-secondary);
-    font-size: 11px;
-}
-
-.user-profile-permission-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-}
-
-.user-profile-permission-reset {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    background: transparent;
-    color: var(--text-secondary);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: color 0.2s ease;
 }
 
 /* ==========================================
@@ -418,9 +361,7 @@ button.user-profile-switch:focus-visible {
 .user-profile-section .users-staff-item-info {
     min-width: 0;
 }
-
-.user-profile-section-subtitle,
-.user-profile-permissions-subtitle {
+.user-profile-section-subtitle {
     margin: 7px 0 0;
     color: var(--text-secondary);
     font-size: 12px;
@@ -502,9 +443,7 @@ button.user-profile-switch:focus-visible {
     color: var(--accent);
     background: var(--bg-secondary);
 }
-
 .user-profile-password-toggle:disabled,
-.user-profile-permission-reset:disabled,
 button.user-profile-switch:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -543,18 +482,7 @@ button.user-profile-switch:disabled {
 }
 
 /* ==========================================
-   РАЗРЕШЕНИЯ
-   ========================================== */
-
-.user-profile-permissions-empty {
-    margin: 0;
-    padding: 24px 26px;
-    color: var(--text-secondary);
-    font-size: 13px;
-}
-
-/* ==========================================
-   ПЕРЕКЛЮЧАТЕЛИ РАЗРЕШЕНИЙ
+   ПЕРЕКЛЮЧАТЕЛЬ АКТИВНОСТИ
 
    В JSX используется:
    <button className="user-profile-switch is-on">
@@ -768,12 +696,8 @@ button.user-profile-switch.is-on>span {
         gap: 9px;
     }
 
-    .user-profile-permissions {
+    .user-profile-staff-content {
         padding: 8px 20px 20px;
-    }
-
-    .user-profile-permission-row {
-        gap: 12px;
     }
 
     .user-profile-save-area {
@@ -783,14 +707,6 @@ button.user-profile-switch.is-on>span {
 
     .user-profile-save-button {
         width: 100%;
-    }
-
-    .user-profile-permission-info {
-        flex: 1;
-    }
-
-    .user-profile-permission-actions {
-        gap: 8px;
     }
 }
 
@@ -810,12 +726,8 @@ button.user-profile-switch.is-on>span {
         padding: 18px;
     }
 
-    .user-profile-permissions {
+    .user-profile-staff-content {
         padding-left: 18px;
         padding-right: 18px;
-    }
-
-    .user-profile-permission-row {
-        align-items: flex-start;
     }
 }

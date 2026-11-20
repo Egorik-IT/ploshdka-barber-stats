@@ -1,3 +1,4 @@
+import useViewMode, { canPreviewPage } from '../hooks/useViewMode';
 import { getInitials, roleNames as userRoleNames } from '../utils/users';
 
 import { useState } from 'react';
@@ -9,6 +10,7 @@ import {
     Store,
     ChartNoAxesCombined,
     Wallet,
+    Calculator,
     Settings,
     LogOut,
     Menu,
@@ -17,7 +19,6 @@ import {
     PanelLeftOpen,
 } from 'lucide-react';
 
-import ThemeToggle from './ThemeToggle';
 import './Sidebar.css';
 
 const roleNames = { developer: 'Разработчик', ...userRoleNames };
@@ -26,7 +27,9 @@ const navigation = [
     { label: 'Главная', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'Пользователи', icon: Users, path: '/users' },
     { label: 'Филиалы', icon: Store, path: '/branches' },
-    { label: 'Статистика', icon: ChartNoAxesCombined, path: '/statistics' },
+    { label: 'Клиенты', icon: Users, path: '/clients' },
+    { label: 'Статистика сотрудников', icon: ChartNoAxesCombined, path: '/statistics' },
+    { label: 'Калькулятор зарплаты', icon: Calculator, path: '/calculator' },
     { label: 'Финансы', icon: Wallet, path: '/finance' },
     { label: 'Настройки', icon: Settings, path: '/settings' },
 ];
@@ -34,9 +37,8 @@ const navigation = [
 export default function Sidebar({
     user,
     onLogout,
-    theme,
-    toggleTheme,
 }) {
+    const { mode } = useViewMode();
     const [menuOpen, setMenuOpen] = useState(false);
 
     const [collapsed, setCollapsed] = useState(
@@ -107,12 +109,8 @@ export default function Sidebar({
                     </button>
                 </div>
 
-                <div className="sidebar-nav-label">
-                    НАВИГАЦИЯ
-                </div>
-
-                <nav className="sidebar-navigation">
-                    {navigation.map((item) => {
+                <nav className="sidebar-navigation" aria-label="Основное меню">
+                    {navigation.filter(item => canPreviewPage(mode, item.path)).map((item) => {
                         const Icon = item.icon;
 
                         return (
@@ -134,15 +132,6 @@ export default function Sidebar({
                 </nav>
 
                 <div className="sidebar-bottom">
-                    <div className="sidebar-theme-setting">
-                        <span>Тема оформления</span>
-
-                        <ThemeToggle
-                            theme={theme}
-                            onToggle={toggleTheme}
-                        />
-                    </div>
-
                     <div
                         className="sidebar-profile"
                         title={`${displayName} — ${roleName}`}

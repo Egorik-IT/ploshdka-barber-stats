@@ -1,4 +1,6 @@
-import { loadPermissionOverrides } from '../utils/permissions.js';
+import { allowRoles, canManageRole } from '../middleware/roleAccess.js';
+import { notifyAccountBlocked } from '../services/sessionEvents.js';
+import { refreshEmployeeCategories } from '../services/employeeCategory.js';
 import { rollbackTransaction } from '../utils/transactions.js';
 import { isHttpUrl, isPositiveIntegerString } from '../../shared/validation.js';
 import { Router } from 'express';
@@ -6,13 +8,9 @@ import bcrypt from 'bcryptjs';
 
 import pool from '../config/db.js';
 import requireAuth from '../middleware/authMiddleware.js';
-import {
-    permissionGroups,
-    permissionCodes,
-    getDefaultPermissions,
-} from '../config/permissions.js';
 
 const router = Router();
+router.use(requireAuth, allowRoles('developer', 'manager', 'admin'));
 
 const allowedRoles = ['manager', 'admin', 'employee'];
 
@@ -99,6 +97,7 @@ async function findUser(client, userId) {
             u.id,
             u.username,
             u.display_name AS "displayName",
+                u.calculation_category AS "calculationCategory",
             u.is_active AS "isActive",
             u.custom_photo_url AS "customPhotoUrl",
             u.yclients_photo_url AS "yclientsPhotoUrl",
@@ -116,20 +115,6 @@ async function findUser(client, userId) {
     );
 
     return result.rows[0] || null;
-}
-
-async function getPermissionOverrides(client, userId) {
-    const overrides = await loadPermissionOverrides(client, userId);
-    return Object.fromEntries(
-        Object.entries(overrides).filter(([code]) => permissionCodes.includes(code))
-    );
-}
-
-function getEffectivePermissions(role, overrides) {
-    return {
-        ...getDefaultPermissions(role),
-        ...overrides,
-    };
 }
 
 function validateYclientsLinks(links) {
@@ -217,13 +202,14 @@ function handleDatabaseError(error, res, fallbackMessage) {
 // GET /api/users
 // ======================================
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT
                 u.id,
                 u.username,
                 u.display_name AS "displayName",
+                u.calculation_category AS "calculationCategory",
                 u.is_active AS "isActive",
                 COALESCE(
                     NULLIF(u.custom_photo_url, ''),
@@ -236,7 +222,7 @@ router.get('/', requireAuth, async (req, res) => {
             ORDER BY u.id ASC
         `);
 
-        res.json({ users: result.rows });
+        res.json({ users: result.rows.filter(user => canManageRole(req.user, user.role)) });
     } catch (error) {
         handleDatabaseError(
             error,
@@ -251,7 +237,7 @@ router.get('/', requireAuth, async (req, res) => {
 // Обязательно выше маршрута /:id
 // ======================================
 
-router.get('/branches', requireAuth, async (req, res) => {
+router.get('/branches', async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT id, name
@@ -274,7 +260,8 @@ router.get('/branches', requireAuth, async (req, res) => {
 // POST /api/users
 // ======================================
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', async (req, res) => {
+    if (!canManageRole(req.user, req.body?.role)) return res.status(403).json({ message: 'Нельзя создавать пользователя с этой ролью' });
     let client;
 
     try {
@@ -381,6 +368,7 @@ router.post('/', requireAuth, async (req, res) => {
         const userId = result.rows[0].id;
 
         await insertYclientsLinks(client, userId, normalizedLinks);
+        await refreshEmployeeCategories(client, [userId]);
 
         const newUser = await findUser(client, userId);
 
@@ -407,24 +395,10 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // ======================================
-// GET /api/users/permission-defaults
-// ======================================
-
-router.get('/permission-defaults', requireAuth, (req, res) => {
-    res.json({
-        defaultsByRole: {
-            manager: getDefaultPermissions('manager'),
-            admin: getDefaultPermissions('admin'),
-            employee: getDefaultPermissions('employee'),
-        },
-    });
-});
-
-// ======================================
 // GET /api/users/:id
 // ======================================
 
-router.get('/:id', requireAuth, async (req, res) => {
+router.get('/:id', async (req, res) => {
     const userId = req.params.id;
 
     if (!isPositiveIntegerString(userId)) {
@@ -442,6 +416,8 @@ router.get('/:id', requireAuth, async (req, res) => {
             });
         }
 
+        if (!canManageRole(req.user, user.role)) return res.status(403).json({ message: 'Нет доступа к этому аккаунту' });
+
         const linksResult = await pool.query(
             `SELECT
                 l.branch_id AS "branchId",
@@ -454,17 +430,11 @@ router.get('/:id', requireAuth, async (req, res) => {
             [userId]
         );
 
-        const overrides = await getPermissionOverrides(pool, userId);
-
         res.json({
             user: {
                 ...user,
                 yclientsLinks: linksResult.rows,
             },
-            permissionGroups,
-            permissionDefaults: getDefaultPermissions(user.role),
-            permissionsOverride: overrides,
-            permissions: getEffectivePermissions(user.role, overrides),
         });
     } catch (error) {
         handleDatabaseError(
@@ -479,7 +449,8 @@ router.get('/:id', requireAuth, async (req, res) => {
 // PATCH /api/users/:id
 // ======================================
 
-router.patch('/:id', requireAuth, async (req, res) => {
+router.patch('/:id', async (req, res) => {
+    if (!canManageRole(req.user, req.body?.role)) return res.status(403).json({ message: 'Нельзя назначить эту роль' });
     const userId = req.params.id;
 
     if (!isPositiveIntegerString(userId)) {
@@ -498,7 +469,6 @@ router.patch('/:id', requireAuth, async (req, res) => {
             isActive,
             customPhotoUrl = null,
             password = '',
-            permissionsOverride,
             yclientsLinks = [],
         } = req.body ?? {};
 
@@ -530,27 +500,6 @@ router.patch('/:id', requireAuth, async (req, res) => {
             });
         }
 
-        if (
-            !permissionsOverride ||
-            typeof permissionsOverride !== 'object' ||
-            Array.isArray(permissionsOverride)
-        ) {
-            return res.status(400).json({
-                message: 'Некорректные разрешения',
-            });
-        }
-
-        for (const [code, value] of Object.entries(permissionsOverride)) {
-            if (
-                !permissionCodes.includes(code) ||
-                typeof value !== 'boolean'
-            ) {
-                return res.status(400).json({
-                    message: 'Некорректное разрешение: ' + code,
-                });
-            }
-        }
-
         const linksValidation = validateYclientsLinks(yclientsLinks);
 
         if (linksValidation.error) {
@@ -569,9 +518,9 @@ router.patch('/:id', requireAuth, async (req, res) => {
         await client.query('BEGIN');
 
         // Системный аккаунт developer не редактируем.
-        // Проверок доступа по ролям здесь нет.
+        // Целевая роль повторно проверяется под блокировкой строки.
         const existingResult = await client.query(
-            `SELECT u.id
+            `SELECT u.id, r.name AS role
              FROM users u
              JOIN roles r ON r.id = u.role_id
              WHERE u.id = $1
@@ -585,6 +534,11 @@ router.patch('/:id', requireAuth, async (req, res) => {
             return res.status(404).json({
                 message: 'Пользователь не найден',
             });
+        }
+
+        if (!canManageRole(req.user, existingResult.rows[0].role)) {
+            await client.query('ROLLBACK');
+            return res.status(403).json({ message: 'Нет доступа к этому аккаунту' });
         }
 
         const roleId = await findRoleId(client, role);
@@ -647,37 +601,12 @@ router.patch('/:id', requireAuth, async (req, res) => {
         );
 
         await insertYclientsLinks(client, userId, normalizedLinks);
+        await refreshEmployeeCategories(client, [userId]);
 
-        // Сохраняем только индивидуальные отклонения
-        // от стандартных разрешений выбранной роли.
-        const defaults = getDefaultPermissions(role);
-
-        await client.query(
-            'DELETE FROM user_permissions WHERE user_id = $1',
-            [userId]
-        );
-
-        for (const [code, value] of Object.entries(permissionsOverride)) {
-            if (value === defaults[code]) continue;
-
-            await client.query(
-                `INSERT INTO user_permissions (
-                    user_id,
-                    permission_code,
-                    is_allowed
-                 )
-                 VALUES ($1, $2, $3)`,
-                [userId, code, value]
-            );
-        }
-
+        if (!isActive || password) await client.query("DELETE FROM user_sessions WHERE sess->>'userId'=$1", [String(userId)]);
         const updatedUser = await findUser(client, userId);
-        const updatedOverrides = await getPermissionOverrides(
-            client,
-            userId
-        );
-
         await client.query('COMMIT');
+        if (!isActive || password) notifyAccountBlocked(userId);
 
         res.json({
             message: 'Изменения сохранены',
@@ -685,13 +614,6 @@ router.patch('/:id', requireAuth, async (req, res) => {
                 ...updatedUser,
                 yclientsLinks: normalizedLinks,
             },
-            permissionGroups,
-            permissionDefaults: defaults,
-            permissionsOverride: updatedOverrides,
-            permissions: getEffectivePermissions(
-                role,
-                updatedOverrides
-            ),
         });
     } catch (error) {
         await rollbackTransaction(client);

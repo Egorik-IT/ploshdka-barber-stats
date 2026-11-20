@@ -1,0 +1,106 @@
+.settings-panel {
+    margin-bottom: 20px;
+    padding: 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 15px;
+}
+
+.settings-panel h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    font-size: 17px;
+}
+
+.settings-panel p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.settings-theme-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.settings-theme-row .theme-toggle {
+    flex-shrink: 0;
+}
+
+.settings-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.settings-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.settings-fields input,
+.settings-fields select {
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 9px;
+    font: inherit;
+    min-height: 44px;
+
+}
+
+.settings-fields select { color: var(--text-primary); color-scheme: dark; }
+:root[data-theme='light'] .settings-fields select { color-scheme: light; }
+.settings-fields :focus-visible,
+.settings-panel > button:focus-visible,
+.settings-approved-fields > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.settings-approved-fields { display: grid; gap: 20px; min-width: 0; border: 0; padding: 0; margin: 20px 0 0; }
+.settings-approved-fields > button { justify-self: start; }
+.settings-approved-fields:disabled { opacity: .65; }
+
+.settings-fields input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+@media (max-width: 600px) {
+    .settings-panel {
+        padding: 16px;
+    }
+
+    .settings-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+.settings-panel > button,
+.settings-approved-fields > button { min-height: 40px; padding: 10px 16px; background: var(--accent); color: var(--accent-text); border: 0; border-radius: 8px; cursor: pointer; }
+.settings-panel > button { margin-top: 20px; }
+.settings-panel > button:disabled,
+.settings-approved-fields > button:disabled { opacity: .5; cursor: not-allowed; }
+
+.settings-category { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border-default); }
+.settings-category h3 { margin: 0 0 18px; font-size: 17px; }
+.settings-profile-header { display: flex; align-items: center; gap: 20px; }
+.settings-profile-header h2 { margin-bottom: 8px; }
+.settings-profile-header p { margin: 5px 0; }
+.settings-profile-avatar { width: 88px; height: 88px; flex-shrink: 0; border-radius: 16px; overflow: hidden; display: grid; place-items: center; background: var(--bg-secondary); color: var(--accent); font-size: 26px; }
+.settings-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.settings-profile-links { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,260px),1fr)); gap: 20px; margin-top: 24px; }
+.settings-profile-links article { padding: 18px; border-radius: 12px; background: var(--bg-secondary); }
+.settings-profile-links h3 { margin: 0 0 10px; }
+.settings-profile-links dl { margin-bottom: 0; font-size: 13px; }
+.settings-profile-links dl > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; margin-top: 12px; }
+.settings-profile-links dt { color: var(--text-secondary); }
+.settings-profile-links dd { margin: 0; overflow-wrap: anywhere; }
+@media(max-width:600px) { .settings-profile-header { align-items: flex-start; gap: 14px; } .settings-profile-avatar { width: 64px; height: 64px; } }

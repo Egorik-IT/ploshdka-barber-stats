@@ -1,3 +1,5 @@
+import useViewMode from '../hooks/useViewMode';
+import { calculationCategories } from '../../shared/calculationSettings';
 import YclientsStaffBranches from '../components/YclientsStaffBranches';
 import { isHttpUrl } from '../../shared/validation.js';
 import { toggleStaffLink } from '../utils/yclients';
@@ -32,6 +34,7 @@ function createEmptyForm() {
 }
 
 export default function UsersPage({ currentUser }) {
+    const {mode}=useViewMode();
     const [users, setUsers] = useState([]);
     const [branches, setBranches] = useState([]);
     const [yclientsStaff, setYclientsStaff] = useState([]);
@@ -339,7 +342,7 @@ export default function UsersPage({ currentUser }) {
                                 </thead>
 
                                 <tbody>
-                                    {users.map(user => {
+                                    {users.filter(user=>mode==='manager'||user.role==='employee').map(user => {
                                         const isCurrentUser =
                                             user.id === currentUser?.id;
 
@@ -369,7 +372,7 @@ export default function UsersPage({ currentUser }) {
                                                             </div>
 
                                                             <span className="users-name">
-                                                                {user.displayName}
+                                                                {user.displayName}<small className="employee-category-label">{calculationCategories[user.calculationCategory] || 'Категория YCLIENTS не определена'}</small>
                                                             </span>
                                                         </Link>
 
@@ -587,12 +590,8 @@ export default function UsersPage({ currentUser }) {
                                     <option value="employee">
                                         Сотрудник
                                     </option>
-                                    <option value="admin">
-                                        Администратор
-                                    </option>
-                                    <option value="manager">
-                                        Руководитель
-                                    </option>
+                                    <option value="admin" disabled={mode==='admin'}>Администратор</option>
+                                    <option value="manager" disabled={mode==='admin' || currentUser?.role!=='developer'}>Руководитель</option>
                                 </select>
                             </div>
 

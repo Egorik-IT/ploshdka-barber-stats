@@ -77,10 +77,9 @@ async function createUser() {
                 password_hash,
                 display_name,
                 role_id,
-                is_active,
-                permissions_override
+                is_active
             )
-            VALUES ($1, $2, $3, $4, TRUE, '{}'::jsonb)
+            VALUES ($1, $2, $3, $4, TRUE)
             RETURNING
                 id,
                 username,

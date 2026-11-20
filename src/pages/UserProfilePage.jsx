@@ -1,3 +1,5 @@
+import useViewMode from '../hooks/useViewMode';
+import { calculationCategories } from '../../shared/calculationSettings';
 import useUnsavedChanges from '../hooks/useUnsavedChanges';
 import YclientsStaffBranches from '../components/YclientsStaffBranches';
 import YclientsEmployeeDetails from '../components/YclientsEmployeeDetails';
@@ -15,9 +17,7 @@ import {
     Check,
     Eye,
     EyeOff,
-    ShieldCheck,
     Save,
-    RotateCcw,
     Search,
     Info,
 } from 'lucide-react';
@@ -40,7 +40,7 @@ function makeForm(user) {
     };
 }
 
-function getEditorSnapshot(form, overrides) {
+function getEditorSnapshot(form) {
     if (!form) return null;
 
     return JSON.stringify({
@@ -56,9 +56,6 @@ function getEditorSnapshot(form, overrides) {
                 staffId: String(link.staffId),
             }))
             .sort((a, b) => a.branchId.localeCompare(b.branchId)),
-        overrides: Object.fromEntries(
-            Object.entries(overrides).sort(([a], [b]) => a.localeCompare(b))
-        ),
     });
 }
 
@@ -70,14 +67,12 @@ function readJson(response) {
 }
 
 export default function UserProfilePage({ currentUser }) {
+    const {mode}=useViewMode();
     const { id } = useParams();
 
     const [user, setUser] = useState(null);
     const [form, setForm] = useState(null);
 
-    const [permissionGroups, setPermissionGroups] = useState([]);
-    const [roleDefaultsByRole, setRoleDefaultsByRole] = useState({});
-    const [overrides, setOverrides] = useState({});
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -99,7 +94,7 @@ export default function UserProfilePage({ currentUser }) {
     const hasUnsavedChanges =
         form !== null &&
         savedSnapshot !== null &&
-        getEditorSnapshot(form, overrides) !== savedSnapshot;
+        getEditorSnapshot(form) !== savedSnapshot;
 
     useUnsavedChanges({ isDirty: hasUnsavedChanges });
 
@@ -115,41 +110,18 @@ export default function UserProfilePage({ currentUser }) {
             setSaveSuccess('');
 
             try {
-                const [userResponse, defaultsResponse] = await Promise.all([
-                    fetchApi(`/api/users/${id}`, {
-                        signal: controller.signal,
-                    }),
-
-                    fetchApi('/api/users/permission-defaults', {
-                        signal: controller.signal,
-                    }),
-                ]);
-
-                const [result, defaultsResult] = await Promise.all([
-                    readJson(userResponse),
-                    readJson(defaultsResponse),
-                ]);
+                const result = await fetchApi(`/api/users/${id}`, {
+                    signal: controller.signal,
+                }).then(readJson);
 
                 if (controller.signal.aborted) return;
 
                 const initialForm = makeForm(result.user);
-                const initialOverrides = result.permissionsOverride || {};
 
-                setSavedSnapshot(getEditorSnapshot(
-                    initialForm,
-                    initialOverrides
-                ));
+                setSavedSnapshot(getEditorSnapshot(initialForm));
 
                 setUser(result.user);
                 setForm(initialForm);
-
-                setPermissionGroups(result.permissionGroups || []);
-
-                setRoleDefaultsByRole(
-                    defaultsResult.defaultsByRole || {}
-                );
-
-                setOverrides(result.permissionsOverride || {});
 
                 // Справочники загружаем отдельно: ошибка интеграции не должна
                 // мешать редактированию остальных полей профиля.
@@ -203,48 +175,6 @@ export default function UserProfilePage({ currentUser }) {
         }));
 
         setSaveError('');
-        setSaveSuccess('');
-    }
-
-    function getDefaultValue(code) {
-        return Boolean(roleDefaultsByRole[form?.role]?.[code]);
-    }
-
-    function getPermissionValue(code) {
-        if (Object.prototype.hasOwnProperty.call(overrides, code)) {
-            return overrides[code];
-        }
-
-        return getDefaultValue(code);
-    }
-
-    function togglePermission(code) {
-        const nextValue = !getPermissionValue(code);
-        const defaultValue = getDefaultValue(code);
-
-        setOverrides(current => {
-            const next = { ...current };
-
-            if (nextValue === defaultValue) {
-                delete next[code];
-            } else {
-                next[code] = nextValue;
-            }
-
-            return next;
-        });
-
-        setSaveError('');
-        setSaveSuccess('');
-    }
-
-    function resetPermission(code) {
-        setOverrides(current => {
-            const next = { ...current };
-            delete next[code];
-            return next;
-        });
-
         setSaveSuccess('');
     }
 
@@ -325,7 +255,6 @@ export default function UserProfilePage({ currentUser }) {
                     isActive: form.isActive,
                     customPhotoUrl: customPhotoUrl || null,
                     password: form.password,
-                    permissionsOverride: overrides,
                     yclientsLinks: form.yclientsLinks.map(link => ({
                         branchId: Number(link.branchId),
                         staffId: String(link.staffId),
@@ -336,19 +265,11 @@ export default function UserProfilePage({ currentUser }) {
             const result = await readJson(response);
 
             const savedForm = makeForm(result.user);
-            const savedOverrides = result.permissionsOverride || {};
 
-            setSavedSnapshot(getEditorSnapshot(
-                savedForm,
-                savedOverrides
-            ));
+            setSavedSnapshot(getEditorSnapshot(savedForm));
 
             setUser(result.user);
             setForm(savedForm);
-
-            setPermissionGroups(result.permissionGroups || []);
-            // Стандарты ролей уже получены отдельным запросом.
-            setOverrides(result.permissionsOverride || {});
 
             setShowPassword(false);
             setSaveSuccess('Изменения успешно сохранены');
@@ -379,7 +300,7 @@ export default function UserProfilePage({ currentUser }) {
 
             <div className="user-profile-heading">
                 <h1>Профиль пользователя</h1>
-                <p>Редактирование аккаунта и разрешений сотрудника</p>
+                <p>Редактирование аккаунта и привязок сотрудника</p>
             </div>
 
             {loading && (
@@ -424,6 +345,7 @@ export default function UserProfilePage({ currentUser }) {
                             <span className="user-profile-role">
                                 {displayedRole}
                             </span>
+                            <span className="employee-category-label">YCLIENTS: {calculationCategories[user.calculationCategory] || 'категория не определена'}</span>
 
                             <span
                                 className={
@@ -539,10 +461,10 @@ export default function UserProfilePage({ currentUser }) {
                                         <option value="employee">
                                             Сотрудник
                                         </option>
-                                        <option value="admin">
+                                        <option value="admin" disabled={mode==='admin'}>
                                             Администратор
                                         </option>
-                                        <option value="manager">
+                                        <option value="manager" disabled={mode==='admin' || currentUser?.role!=='developer'}>
                                             Руководитель
                                         </option>
                                     </select>
@@ -680,7 +602,7 @@ export default function UserProfilePage({ currentUser }) {
                                 </div>
                             </div>
 
-                            <div className="user-profile-permissions">
+                            <div className="user-profile-staff-content">
                                 <div className="users-form-field">
                                     <label htmlFor="profile-staff-search">Поиск сотрудника</label>
                                     <div className="users-staff-search">
@@ -733,109 +655,6 @@ export default function UserProfilePage({ currentUser }) {
                                     </p>
                                 </div>
                             </div>
-                        </section>
-
-                        <section className="user-profile-section">
-                            <div className="user-profile-section-heading">
-                                <ShieldCheck size={20} />
-                                <div>
-                                    <h3>Разрешения пользователя</h3>
-                                    <p className="user-profile-permissions-subtitle">
-                                        Стандартные значения определяются ролью.
-                                        Изменённые разрешения сохраняются отдельно.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {permissionGroups.length === 0 ? (
-                                <p className="user-profile-permissions-empty">
-                                    Список разрешений пока не настроен.
-                                </p>
-                            ) : (
-                                <div className="user-profile-permissions">
-                                    {permissionGroups.map(group => (
-                                        <div
-                                            key={group.title}
-                                            className="user-profile-permission-group"
-                                        >
-                                            <h4>{group.title}</h4>
-
-                                            {group.permissions.map(permission => {
-                                                const isEnabled =
-                                                    getPermissionValue(
-                                                        permission.code
-                                                    );
-
-                                                const isOverridden =
-                                                    Object.prototype.hasOwnProperty.call(
-                                                        overrides,
-                                                        permission.code
-                                                    );
-
-                                                return (
-                                                    <div
-                                                        key={permission.code}
-                                                        className="user-profile-permission-row"
-                                                    >
-                                                        <div className="user-profile-permission-info">
-                                                            <span>
-                                                                {permission.label}
-                                                            </span>
-
-                                                            <small>
-                                                                {isOverridden
-                                                                    ? 'Индивидуальное значение'
-                                                                    : 'По умолчанию для роли'}
-                                                            </small>
-                                                        </div>
-
-                                                        <div className="user-profile-permission-actions">
-                                                            {isOverridden && (
-                                                                <button
-                                                                    type="button"
-                                                                    className="user-profile-permission-reset"
-                                                                    onClick={() =>
-                                                                        resetPermission(
-                                                                            permission.code
-                                                                        )
-                                                                    }
-                                                                    title="Вернуть значение роли"
-                                                                    aria-label={
-                                                                        `Сбросить: ${permission.label}`
-                                                                    }
-                                                                    disabled={saving}
-                                                                >
-                                                                    <RotateCcw size={15} />
-                                                                </button>
-                                                            )}
-
-                                                            <button
-                                                                type="button"
-                                                                role="switch"
-                                                                aria-checked={isEnabled}
-                                                                aria-label={permission.label}
-                                                                className={
-                                                                    isEnabled
-                                                                        ? 'user-profile-switch is-on'
-                                                                        : 'user-profile-switch'
-                                                                }
-                                                                onClick={() =>
-                                                                    togglePermission(
-                                                                        permission.code
-                                                                    )
-                                                                }
-                                                                disabled={saving}
-                                                            >
-                                                                <span />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
                         </section>
 
                         <div className="user-profile-save-area">

@@ -49,6 +49,16 @@ function readApiResponse(response) {
     });
 }
 
+async function loadBranches(signal) {
+        const response = await fetchApi('/api/branches', {
+            signal,
+        });
+
+        const result = await readApiResponse(response);
+
+        return result.branches || [];
+    }
+
 export default function BranchesPage() {
     const [branches, setBranches] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -63,16 +73,25 @@ export default function BranchesPage() {
     const [copiedId, setCopiedId] = useState(null);
     const [syncMessage, setSyncMessage] = useState('');
     const [syncingBranchId, setSyncingBranchId] = useState(null);
+    const hasRunningSync = branches.some(branch => branch.syncJob?.status === 'running');
 
-    async function loadBranches(signal) {
-        const response = await fetchApi('/api/branches', {
-            signal,
-        });
+    useEffect(() => {
+        if (!hasRunningSync) return;
+        const controller = new AbortController();
+        let timer;
+        async function poll() {
+            try {
+                const updated = await loadBranches(controller.signal);
+                if (!controller.signal.aborted) setBranches(updated);
+            } catch {
+                if (!controller.signal.aborted) setSyncMessage('Не удалось проверить синхронизацию. Повторяем проверку…');
+            }
+            if (!controller.signal.aborted) timer = setTimeout(poll, 2000);
+        }
+        timer = setTimeout(poll, 2000);
+        return () => { controller.abort(); clearTimeout(timer); };
+    }, [hasRunningSync]);
 
-        const result = await readApiResponse(response);
-
-        return result.branches || [];
-    }
 
     useEffect(() => {
         const controller = new AbortController();
@@ -270,7 +289,7 @@ export default function BranchesPage() {
             setSyncMessage('');
 
             const response = await fetchApi(
-                `/api/branches/${branch.id}/sync-staff`,
+                `/api/branches/${branch.id}/sync`,
                 {
                     method: 'POST',
                 }
@@ -278,10 +297,8 @@ export default function BranchesPage() {
 
             const result = await readApiResponse(response);
 
-            setSyncMessage(
-                `Филиал «${branch.name}» успешно синхронизирован. ` +
-                `Получено сотрудников: ${result.staffCount}.`
-            );
+            setBranches(current => current.map(item => item.id === branch.id ? { ...item, syncJob: result } : item));
+            setSyncMessage(`Синхронизация филиала «${branch.name}» запущена. Можно продолжать работу.`);
 
             // Обновляем количество сотрудников
             // и дату последней синхронизации.
@@ -388,6 +405,7 @@ export default function BranchesPage() {
                                         <th>YCLIENTS Company ID</th>
                                         <th>Статус</th>
                                         <th>Сотрудники</th>
+                                        <th>Клиенты</th>
                                         <th>Синхронизация</th>
                                         <th>Действия</th>
                                     </tr>
@@ -459,11 +477,19 @@ export default function BranchesPage() {
                                                 </span>
                                             </td>
 
+                                            <td>{branch.clientCount ?? 0}</td>
                                             <td>
-                                                <span className="branches-sync-date">
+                                                <span className="branches-sync-date" role="status">
                                                     {formatSyncDate(
-                                                        branch.staffSyncedAt
+                                                        branch.directorySyncedAt
                                                     )}
+                                                    {branch.syncJob?.status === 'running' && <><br />
+                                                        {{ staff: 'Сотрудники', clients: 'Клиенты', services: 'Услуги', goods: 'Товары' }[branch.syncJob.stage]}: {branch.syncJob.count}…
+                                                    </>}
+                                                    {branch.syncJob?.status === 'error' && <><br />{branch.syncJob.message}</>}
+                                                    {branch.syncJob?.status === 'done' && <><br />
+                                                        Готово: клиентов {branch.syncJob.result.counts.clients}, услуг {branch.syncJob.result.counts.services}, товаров {branch.syncJob.result.counts.goods}
+                                                    </>}
                                                 </span>
                                             </td>
 
@@ -475,6 +501,7 @@ export default function BranchesPage() {
                                                         onClick={() => handleSync(branch)}
                                                         disabled={
                                                             syncingBranchId !== null ||
+                                                            branch.syncJob?.status === 'running' ||
                                                             !branch.isActive ||
                                                             !branch.yclientsCompanyId
                                                         }
@@ -483,19 +510,19 @@ export default function BranchesPage() {
                                                                 ? 'Сначала укажите YCLIENTS Company ID'
                                                                 : !branch.isActive
                                                                     ? 'Филиал отключён'
-                                                                    : 'Синхронизировать сотрудников'
+                                                                    : 'Синхронизировать сотрудников, клиентов, услуги и товары'
                                                         }
                                                     >
                                                         <RefreshCw
                                                             size={15}
                                                             className={
-                                                                syncingBranchId === branch.id
+                                                                (syncingBranchId === branch.id || branch.syncJob?.status === 'running')
                                                                     ? 'branches-sync-spinning'
                                                                     : ''
                                                             }
                                                         />
 
-                                                        {syncingBranchId === branch.id
+                                                        {(syncingBranchId === branch.id || branch.syncJob?.status === 'running')
                                                             ? 'Синхронизация...'
                                                             : 'Синхронизировать'}
                                                     </button>
@@ -503,6 +530,7 @@ export default function BranchesPage() {
                                                     <button
                                                         type="button"
                                                         className="branches-edit-button"
+                                                        disabled={branch.syncJob?.status === 'running'}
                                                         onClick={() =>
                                                             openEdit(branch)
                                                         }

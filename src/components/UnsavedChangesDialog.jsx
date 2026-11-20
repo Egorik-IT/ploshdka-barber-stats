@@ -2,8 +2,10 @@ import { useId, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { TriangleAlert } from 'lucide-react';
 import './UnsavedChangesDialog.css';
+import useScrollLock from '../hooks/useScrollLock';
 
-export default function UnsavedChangesDialog({ onStay, onLeave }) {
+export default function UnsavedChangesDialog({ onStay, onLeave, transient = false }) {
+    useScrollLock();
     const dialogRef = useRef(null);
     const stayRef = useRef(null);
     const titleId = useId();
@@ -12,15 +14,11 @@ export default function UnsavedChangesDialog({ onStay, onLeave }) {
     useLayoutEffect(() => {
         const dialog = dialogRef.current;
         const previousFocus = document.activeElement;
-        const previousOverflow = document.body.style.overflow;
-
-        document.body.style.overflow = 'hidden';
         dialog.showModal();
-        stayRef.current.focus();
+        stayRef.current.focus({ preventScroll: true });
 
         return () => {
             dialog.close();
-            document.body.style.overflow = previousOverflow;
             if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
         };
     }, []);
@@ -61,7 +59,7 @@ export default function UnsavedChangesDialog({ onStay, onLeave }) {
         >
             <div className="unsaved-dialog-heading">
                 <TriangleAlert size={24} aria-hidden="true" />
-                <h2 id={titleId}>Несохранённые изменения</h2>
+                <h2 id={titleId}>{transient ? 'Расчёты будут потеряны' : 'Несохранённые изменения'}</h2>
             </div>
             <p id={descriptionId}>
                 Если выйти сейчас, внесённые изменения будут потеряны.
@@ -71,7 +69,7 @@ export default function UnsavedChangesDialog({ onStay, onLeave }) {
                     Остаться
                 </button>
                 <button type="button" className="unsaved-dialog-leave" onClick={onLeave}>
-                    Выйти без сохранения
+                    {transient ? 'Выйти и удалить расчёты' : 'Выйти без сохранения'}
                 </button>
             </div>
         </dialog>,

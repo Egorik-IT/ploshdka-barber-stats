@@ -2,7 +2,7 @@ import { createContext, useContext, useId, useLayoutEffect } from 'react';
 
 export const UnsavedChangesContext = createContext(null);
 
-export default function useUnsavedChanges({ isDirty = false } = {}) {
+export default function useUnsavedChanges({ isDirty = false, transient = false } = {}) {
     const context = useContext(UnsavedChangesContext);
     const id = useId();
 
@@ -12,7 +12,7 @@ export default function useUnsavedChanges({ isDirty = false } = {}) {
 
     const { register, confirmLeave } = context;
 
-    useLayoutEffect(() => register(id, isDirty), [register, id, isDirty]);
+    useLayoutEffect(() => register(id, isDirty, transient), [register, id, isDirty, transient]);
 
     return { confirmLeave };
 }

@@ -2,13 +2,15 @@
 
 .users-heading,
 .branches-heading,
-.dashboard-heading {
+.dashboard-heading,
+.report-heading {
     margin-bottom: 36px;
 }
 
 .users-heading h1,
 .branches-heading h1,
-.dashboard-heading h1 {
+.dashboard-heading h1,
+.report-heading h1 {
     margin: 0 0 10px;
     color: var(--text-primary);
     font-size: clamp(27px, 3vw, 38px);
@@ -18,7 +20,8 @@
 
 .users-heading p,
 .branches-heading p,
-.dashboard-heading p {
+.dashboard-heading p,
+.report-heading p {
     margin: 0;
     color: var(--text-secondary);
     font-size: 13px;
@@ -72,7 +75,8 @@
 
 .users-card,
 .branches-card,
-.dashboard-stat-card {
+.dashboard-stat-card,
+.report-card {
     min-height: 175px;
     padding: 22px;
     background: var(--bg-surface);
@@ -371,8 +375,7 @@
     outline: none;
 }
 
-.users-staff-item-info,
-.user-profile-permission-info {
+.users-staff-item-info {
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -408,6 +411,7 @@
 .users-content,
 .branches-content,
 .dashboard-content,
+.report-content,
 .user-profile-content {
     max-width: 1500px;
     margin: 0 auto;
@@ -418,13 +422,15 @@
 
     .users-content,
     .branches-content,
-    .dashboard-content {
+    .dashboard-content,
+    .report-content {
         padding: 28px 18px 50px;
     }
 
     .users-card,
     .branches-card,
-    .dashboard-stat-card {
+    .dashboard-stat-card,
+    .report-card {
         padding: 15px;
     }
 

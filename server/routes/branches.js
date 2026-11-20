@@ -1,15 +1,20 @@
+import { allowRoles } from '../middleware/roleAccess.js';
+import { refreshEmployeeCategories } from '../services/employeeCategory.js';
 
 import { Router } from 'express';
 
 import pool from '../config/db.js';
+import { requestYclients, integrationError } from '../services/yclientsApi.js';
+import { fetchDirectory, saveDirectory } from '../services/yclientsDirectory.js';
 import requireAuth from '../middleware/authMiddleware.js';
 import { rollbackTransaction } from '../utils/transactions.js';
 import { isPositiveIntegerString as isValidId } from '../../shared/validation.js';
 
 const router = Router();
+const syncJobs = new Map();
 
 const MAX_BIGINT = 9223372036854775807n;
-const YCLIENTS_API_URL = 'https://api.yclients.com/api/v1';
+
 
 // ======================================
 // ОБЩИЕ ФУНКЦИИ
@@ -251,89 +256,7 @@ function normalizeStaff(staff) {
 // ======================================
 
 async function fetchYclientsStaff(companyId) {
-    const partnerToken = process.env.YCLIENTS_PARTNER_TOKEN;
-    const userToken = process.env.YCLIENTS_USER_TOKEN;
-
-    if (!partnerToken || !userToken) {
-        const error = new Error(
-            'Не настроены YCLIENTS_PARTNER_TOKEN или YCLIENTS_USER_TOKEN'
-        );
-
-        error.status = 503;
-        throw error;
-    }
-
-    const controller = new AbortController();
-
-    const timeout = setTimeout(
-        () => controller.abort(),
-        20000
-    );
-
-    let response;
-
-    try {
-        response = await fetch(
-            `${YCLIENTS_API_URL}/company/${companyId}/staff`,
-            {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/vnd.yclients.v2+json',
-                    Authorization:
-                        `Bearer ${partnerToken}, User ${userToken}`,
-                },
-                signal: controller.signal,
-            }
-        );
-    } catch (error) {
-        const requestError = new Error(
-            error.name === 'AbortError'
-                ? 'YCLIENTS не ответил за 20 секунд'
-                : 'Не удалось подключиться к YCLIENTS'
-        );
-
-        requestError.status = 502;
-        throw requestError;
-    } finally {
-        clearTimeout(timeout);
-    }
-
-    if (!response.ok) {
-        const error = new Error(
-            response.status === 401 || response.status === 403
-                ? 'YCLIENTS отклонил запрос. Проверь токены и доступ к компании'
-                : `YCLIENTS вернул ошибку HTTP ${response.status}`
-        );
-
-        error.status = 502;
-        throw error;
-    }
-
-    let payload;
-
-    try {
-        payload = await response.json();
-    } catch {
-        const error = new Error(
-            'YCLIENTS вернул некорректный JSON'
-        );
-
-        error.status = 502;
-        throw error;
-    }
-
-    if (
-        !payload ||
-        payload.success === false ||
-        !Array.isArray(payload.data)
-    ) {
-        const error = new Error(
-            'YCLIENTS вернул неожиданный формат списка сотрудников'
-        );
-
-        error.status = 502;
-        throw error;
-    }
+    const payload = await requestYclients(`/company/${companyId}/staff`);
 
     const staffById = new Map();
 
@@ -369,6 +292,10 @@ router.get('/', requireAuth, async (req, res) => {
                 b.yclients_company_id::text AS "yclientsCompanyId",
                 b.is_active AS "isActive",
                 b.staff_synced_at AS "staffSyncedAt",
+                (SELECT synced_at FROM yclients_directory_sync d WHERE d.branch_id=b.id
+                    AND d.company_id=b.yclients_company_id) AS "directorySyncedAt",
+                (SELECT COUNT(*)::integer FROM yclients_directory d WHERE d.branch_id=b.id
+                    AND d.company_id=b.yclients_company_id AND kind='clients') AS "clientCount",
                 (
                     SELECT COUNT(*)::integer
                     FROM yclients_staff_cache s
@@ -380,7 +307,7 @@ router.get('/', requireAuth, async (req, res) => {
         `);
 
         res.json({
-            branches: result.rows,
+            branches: result.rows.map(branch => ({ ...branch, syncJob: syncJobs.get(String(branch.id)) || null })),
         });
     } catch (error) {
         console.error('Ошибка получения филиалов:', error);
@@ -396,7 +323,7 @@ router.get('/', requireAuth, async (req, res) => {
 // POST /api/branches
 // ======================================
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, allowRoles('manager', 'developer'), async (req, res) => {
     const validation = validateBranch(req.body);
 
     if (validation.error) {
@@ -447,7 +374,7 @@ router.post('/', requireAuth, async (req, res) => {
 // PATCH /api/branches/:id
 // ======================================
 
-router.patch('/:id', requireAuth, async (req, res) => {
+router.patch('/:id', requireAuth, allowRoles('manager', 'developer'), async (req, res) => {
     const branchId = req.params.id;
 
     if (!isValidId(branchId)) {
@@ -583,21 +510,22 @@ router.get('/:id/staff', requireAuth, async (req, res) => {
 // POST /api/branches/:id/sync-staff
 // ======================================
 
-router.post('/:id/sync-staff', requireAuth, async (req, res) => {
-    const branchId = req.params.id;
+export async function synchronizeBranch(branchId, full = false, onProgress = () => {}) {
 
     if (!isValidId(branchId)) {
-        return res.status(400).json({
-            message: 'Некорректный ID филиала',
-        });
+        throw integrationError('Некорректный ID филиала', 400);
     }
 
     let client;
+    let locked = false;
+    let transaction = false;
 
     try {
         client = await pool.connect();
 
-        await client.query('BEGIN');
+        const lock = await client.query('SELECT pg_try_advisory_lock(147222, $1::integer) AS locked', [branchId]);
+        locked = lock.rows[0].locked;
+        if (!locked) throw integrationError('Филиал уже синхронизируется', 409);
 
         // Блокируем филиал от одновременной синхронизации.
         const branchResult = await client.query(
@@ -608,33 +536,36 @@ router.post('/:id/sync-staff', requireAuth, async (req, res) => {
              FROM branches
              WHERE id = $1
                AND is_active = TRUE
-             FOR UPDATE`,
+`,
             [branchId]
         );
 
         const branch = branchResult.rows[0];
 
         if (!branch) {
-            await client.query('ROLLBACK');
 
-            return res.status(404).json({
-                message: 'Активный филиал не найден',
-            });
+            throw integrationError('Активный филиал не найден', 404);
         }
 
         if (!branch.yclientsCompanyId) {
-            await client.query('ROLLBACK');
 
-            return res.status(400).json({
-                message: 'У филиала не указан YCLIENTS Company ID',
-            });
+            throw integrationError('У филиала не указан YCLIENTS Company ID', 400);
         }
 
         // Получаем сотрудников из нового API.
         // При ошибке запроса транзакция будет отменена.
+        onProgress('staff', 0);
         const staff = await fetchYclientsStaff(
             branch.yclientsCompanyId
         );
+
+        const snapshots = full ? await fetchDirectory(branch, onProgress) : null;
+        await client.query('BEGIN');
+        transaction = true;
+        const current = await client.query('SELECT id FROM branches WHERE id=$1 AND is_active AND yclients_company_id=$2 FOR UPDATE NOWAIT', [branchId, branch.yclientsCompanyId]);
+        if (!current.rowCount) throw integrationError('Филиал изменился во время загрузки. Повторите синхронизацию.', 409);
+        // Помечаем отсутствующих в полном списке сотрудников, не удаляя привязки.
+        await client.query('UPDATE yclients_staff_cache SET is_active=false WHERE branch_id=$1 AND NOT (yclients_staff_id=ANY($2::bigint[]))', [branchId, staff.map(employee => employee.staffId)]);
 
         // Сохраняем всех полученных сотрудников,
         // включая уволенных и удалённых.
@@ -712,6 +643,10 @@ router.post('/:id/sync-staff', requireAuth, async (req, res) => {
             );
         }
 
+        const linkedUsers = await client.query('SELECT DISTINCT user_id FROM user_yclients_links WHERE branch_id=$1', [branchId]);
+        await refreshEmployeeCategories(client, linkedUsers.rows.map(row => row.user_id));
+        const counts = full ? await saveDirectory(client, branch, snapshots) : {};
+
         // Обновляем время синхронизации филиала.
         const updatedBranch = await client.query(
             `UPDATE branches
@@ -739,36 +674,63 @@ router.post('/:id/sync-staff', requireAuth, async (req, res) => {
 
         await client.query('COMMIT');
 
-        res.json({
-            message: 'Сотрудники YCLIENTS успешно синхронизированы',
+        return {
+            counts,
+            message: full ? 'Справочники YCLIENTS успешно синхронизированы' : 'Сотрудники YCLIENTS успешно синхронизированы',
             branchId: Number(branchId),
             staffCount: staff.length,
             activeCount,
             firedCount,
             deletedCount,
             staffSyncedAt: updatedBranch.rows[0].staffSyncedAt,
-        });
+        };
     } catch (error) {
-        await rollbackTransaction(
+        if (transaction) await rollbackTransaction(
             client,
             'Ошибка отката синхронизации:'
         );
 
-        console.error(
-            'Ошибка синхронизации YCLIENTS:',
-            error
-        );
-
-        res.status(error.status || 500).json({
-            message: error.status
-                ? error.message
-                : 'Не удалось синхронизировать сотрудников',
-        });
+        if (error.code === '55P03') throw integrationError('Филиал уже синхронизируется или редактируется', 409);
+        throw error;
     } finally {
         if (client) {
-            client.release();
+            try { if (locked) await client.query('SELECT pg_advisory_unlock(147222, $1::integer)', [branchId]); }
+            finally { client.release(); }
         }
     }
+}
+
+function sendSyncError(res, error) {
+    res.status(error.status || 500).json({ message: error.status ? error.message : 'Не удалось синхронизировать филиал' });
+}
+
+router.post('/:id/sync-staff', requireAuth, allowRoles('manager', 'developer'), async (req, res) => {
+    try { res.json(await synchronizeBranch(req.params.id)); }
+    catch (error) { sendSyncError(res, error); }
+});
+
+router.post('/:id/sync', requireAuth, allowRoles('manager', 'developer'), async (req, res) => {
+    const id = req.params.id;
+    if (!isValidId(id)) return res.status(400).json({ message: 'Некорректный ID филиала' });
+    const previous = syncJobs.get(id);
+    if (previous?.status === 'running') return res.status(202).json(previous);
+    if (previous && Date.now() - previous.startedAt < 60000) {
+        return res.status(429).json({ message: 'Повторная синхронизация доступна через минуту после запуска' });
+    }
+    try {
+        const result = await pool.query('SELECT id FROM branches WHERE id=$1 AND is_active AND yclients_company_id IS NOT NULL', [id]);
+        if (!result.rowCount) return res.status(400).json({ message: 'Укажите YCLIENTS Company ID активного филиала' });
+        if (syncJobs.get(id)?.status === 'running') return res.status(202).json(syncJobs.get(id));
+        const job = { status: 'running', stage: 'staff', count: 0, startedAt: Date.now() };
+        syncJobs.set(id, job);
+        res.status(202).json(job);
+        // Задача продолжает работать после ухода пользователя со страницы.
+        void synchronizeBranch(id, true, (stage, count) => Object.assign(job, { stage, count }))
+            .then(result => Object.assign(job, { status: 'done', result }))
+            .catch(error => Object.assign(job, {
+                status: 'error', message: error.status ? error.message : 'Синхронизация не завершена. Предыдущие данные сохранены.',
+            }));
+    } catch (error) { sendSyncError(res, error); }
 });
 
 export default router;

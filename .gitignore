@@ -26,3 +26,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+# Database backups and local browser checks
+backups/
+*.dump
+.artifacts/

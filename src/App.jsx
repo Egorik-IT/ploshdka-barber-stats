@@ -1,3 +1,8 @@
+import useViewMode from './hooks/useViewMode';
+import ViewModeProvider from './components/ViewModeProvider';
+import useSessionStatus from './hooks/useSessionStatus';
+import { useContext, useCallback } from 'react';
+import { UnsavedChangesContext } from './hooks/useUnsavedChanges';
 import UnsavedChangesProvider from './components/UnsavedChangesProvider';
 import useUnsavedChanges from './hooks/useUnsavedChanges';
 import { fetchApi } from './utils/api';
@@ -18,11 +23,22 @@ import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import UserProfilePage from './pages/UserProfilePage';
 import BranchesPage from './pages/BranchesPage';
+import ClientsPage from './pages/ClientsPage';
+import StatisticsPage from './pages/StatisticsPage';
+import FinancePage from './pages/FinancePage';
+import SettingsPage from './pages/SettingsPage';
+import SalaryCalculatorPage from './pages/SalaryCalculatorPage';
 import MainLayout from './layouts/MainLayout';
 
 import './App.css';
 
-function AppContent() {
+function AppSession() {
+  const [user, setUser] = useState(null);
+  return <ViewModeProvider user={user}><AppContent user={user} setUser={setUser} /></ViewModeProvider>;
+}
+
+function AppContent({ user, setUser }) {
+  const { mode } = useViewMode();
   const { confirmLeave } = useUnsavedChanges();
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') === 'light'
@@ -30,8 +46,10 @@ function AppContent() {
       : 'dark';
   });
 
-  const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const { discardChanges } = useContext(UnsavedChangesContext);
+  const expireSession = useCallback(() => { discardChanges(); setUser(null); }, [discardChanges, setUser]);
+  useSessionStatus(user, expireSession, setUser);
 
   // Применяем тему
   useEffect(() => {
@@ -63,7 +81,7 @@ function AppContent() {
     }
 
     checkAuth();
-  }, []);
+  }, [setUser]);
 
   // Переключение темы
   function toggleTheme() {
@@ -126,7 +144,6 @@ function AppContent() {
                   user={user}
                   onLogout={handleLogout}
                   theme={theme}
-                  toggleTheme={toggleTheme}
                 />
               )
               : <Navigate to="/login" replace />
@@ -139,12 +156,33 @@ function AppContent() {
 
           <Route
             path="/users"
-            element={<UsersPage currentUser={user} />}
+            element={<UsersPage key={mode} currentUser={user} />}
           />
 
           <Route
             path="/users/:id"
             element={<UserProfilePage currentUser={user} />}
+          />
+
+          <Route
+            path="/statistics"
+            element={<StatisticsPage key={mode}/>}
+          />
+          <Route path="/clients" element={<ClientsPage />} />
+
+          <Route
+            path="/calculator"
+            element={<SalaryCalculatorPage />}
+          />
+
+          <Route
+            path="/finance"
+            element={<FinancePage />}
+          />
+
+          <Route
+            path="/settings"
+            element={<SettingsPage theme={theme} toggleTheme={toggleTheme} />}
           />
 
           <Route
@@ -172,7 +210,7 @@ const router = createBrowserRouter([
     path: '*',
     element: (
       <UnsavedChangesProvider>
-        <AppContent />
+        <AppSession />
       </UnsavedChangesProvider>
     ),
   },

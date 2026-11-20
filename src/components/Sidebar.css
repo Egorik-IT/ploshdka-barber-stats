@@ -81,7 +81,6 @@
 .sidebar-close-button,
 .sidebar-collapsed .sidebar-brand-text,
 .sidebar-collapsed .sidebar-nav-item span,
-.sidebar-collapsed .sidebar-theme-setting>span,
 .sidebar-collapsed .sidebar-profile-info,
 .sidebar-collapsed .sidebar-logout span,
 .sidebar-mobile-header,
@@ -95,14 +94,6 @@
 }
 
 /* НАВИГАЦИЯ */
-
-.sidebar-nav-label {
-    padding: 22px 24px 12px;
-    color: var(--text-secondary);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1.6px;
-}
 
 .sidebar-navigation {
     display: flex;
@@ -139,10 +130,6 @@
     color: var(--accent-text);
 }
 
-.sidebar-collapsed .sidebar-nav-label {
-    visibility: hidden;
-}
-
 .sidebar-collapsed .sidebar-nav-item,
 .sidebar-collapsed .sidebar-logout {
     justify-content: center;
@@ -156,27 +143,8 @@
     padding: 16px 12px 22px;
 }
 
-.sidebar-theme-setting {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 12px 10px;
-    margin-bottom: 12px;
-    font-size: 12px;
-    font-weight: 600;
-}
 
-.sidebar-theme-setting .theme-control,
-.sidebar-theme-setting .theme-toggle {
-    position: static;
-    inset: auto;
-}
 
-.sidebar-collapsed .sidebar-theme-setting {
-    justify-content: center;
-    padding: 12px 0;
-}
 
 /* ПРОФИЛЬ */
 
@@ -279,10 +247,6 @@
         display: flex;
     }
 
-    .sidebar-collapsed .sidebar-nav-label {
-        visibility: visible;
-    }
-
     .sidebar-collapsed .sidebar-nav-item,
     .sidebar-collapsed .sidebar-logout {
         justify-content: flex-start;
@@ -290,15 +254,10 @@
     }
 
     .sidebar-collapsed .sidebar-nav-item span,
-    .sidebar-collapsed .sidebar-theme-setting>span,
     .sidebar-collapsed .sidebar-logout span {
         display: inline;
     }
 
-    .sidebar-collapsed .sidebar-theme-setting {
-        justify-content: space-between;
-        padding: 12px 10px;
-    }
 
     .sidebar-collapsed .sidebar-profile {
         justify-content: flex-start;

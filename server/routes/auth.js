@@ -1,21 +1,42 @@
-import { loadPermissionOverrides } from '../utils/permissions.js';
+import { cookieOptions } from '../config/runtime.js';
 
 import { Router } from 'express';
+import { createLoginLimit } from '../middleware/loginLimit.js';
 import bcrypt from 'bcryptjs';
 
 import pool from '../config/db.js';
 import requireAuth from '../middleware/authMiddleware.js';
+import { watchSession } from '../services/sessionEvents.js';
 
 const router = Router();
 
-function serializeUser(user, permissionsOverride) {
+router.get('/events', requireAuth, (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+    res.write(': connected\n\n');
+    watchSession(req.session.userId, res);
+    const heartbeat = setInterval(async () => {
+        try {
+            const { rows } = await pool.query('SELECT is_active FROM users WHERE id=$1', [req.session.userId]);
+            if (!rows[0]?.is_active) {
+                res.write('event: blocked\ndata: {}\n\n');
+                res.end();
+            } else res.write(': heartbeat\n\n');
+        } catch { res.end(); }
+    }, 15000);
+    res.on('close', () => clearInterval(heartbeat));
+});
+
+function serializeUser(user) {
     return {
         id: user.id,
         username: user.username,
         displayName: user.display_name,
         role: user.role,
+        calculationCategory: user.calculation_category,
         photo: user.custom_photo_url || user.yclients_photo_url || null,
-        permissionsOverride,
     };
 }
 
@@ -24,9 +45,9 @@ function serializeUser(user, permissionsOverride) {
 // POST /api/auth/login
 // ======================================
 
-router.post('/login', async (req, res) => {
+router.post('/login', createLoginLimit(), async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password } = req.body || {};
 
         if (
             typeof username !== 'string' ||
@@ -46,6 +67,7 @@ router.post('/login', async (req, res) => {
                 u.username,
                 u.password_hash,
                 u.display_name,
+                u.calculation_category,
                 u.is_active,
                 u.custom_photo_url,
                 u.yclients_photo_url,
@@ -78,10 +100,6 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Получаем индивидуальные настройки
-        const permissionsOverride =
-            await loadPermissionOverrides(pool, user.id);
-
         // Создаём новую сессию
         req.session.regenerate((error) => {
             if (error) {
@@ -105,7 +123,7 @@ router.post('/login', async (req, res) => {
 
                 res.json({
                     message: 'Вход выполнен успешно',
-                    user: serializeUser(user, permissionsOverride),
+                    user: serializeUser(user),
                 });
             });
         });
@@ -131,6 +149,7 @@ router.get('/me', requireAuth, async (req, res) => {
                 u.id,
                 u.username,
                 u.display_name,
+                u.calculation_category,
                 u.is_active,
                 u.custom_photo_url,
                 u.yclients_photo_url,
@@ -149,11 +168,8 @@ router.get('/me', requireAuth, async (req, res) => {
             });
         }
 
-        const permissionsOverride =
-            await loadPermissionOverrides(pool, user.id);
-
         res.json({
-            user: serializeUser(user, permissionsOverride),
+            user: serializeUser(user),
         });
 
     } catch (error) {
@@ -186,12 +202,7 @@ router.post('/logout', (req, res) => {
             });
         }
 
-        res.clearCookie('ploshdka.sid', {
-            path: '/',
-            httpOnly: true,
-            sameSite: 'lax',
-            secure: false,
-        });
+        res.clearCookie('ploshdka.sid', cookieOptions());
 
         res.json({
             message: 'Выход выполнен успешно',

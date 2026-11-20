@@ -4,20 +4,23 @@ import { UnsavedChangesContext } from '../hooks/useUnsavedChanges';
 import UnsavedChangesDialog from './UnsavedChangesDialog';
 
 export default function UnsavedChangesProvider({ children }) {
-    const editors = useRef(new Set());
+    const editors = useRef(new Map());
+    const [transient, setTransient] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const [manualOpen, setManualOpen] = useState(false);
     const pending = useRef(null);
     const busy = useRef(false);
     const bypass = useRef(false);
 
-    const register = useCallback((id, dirty) => {
+    const register = useCallback((id, dirty, temporary) => {
         if (!dirty) return;
 
-        editors.current.add(id);
+        editors.current.set(id, temporary);
+        setTransient([...editors.current.values()].every(Boolean));
         setIsDirty(true);
         return () => {
             editors.current.delete(id);
+            setTransient(editors.current.size > 0 && [...editors.current.values()].every(Boolean));
             setIsDirty(editors.current.size > 0);
         };
     }, []);
@@ -105,13 +108,19 @@ export default function UnsavedChangesProvider({ children }) {
         else if (blocker.state === 'blocked') blocker.proceed();
     }
 
-    const value = useMemo(() => ({ register, confirmLeave }), [register, confirmLeave]);
+    const discardChanges = useCallback(() => {
+        editors.current.clear();
+        setIsDirty(false);
+        settleManual(false);
+        if (blockerRef.current.state === 'blocked') blockerRef.current.reset();
+    }, [settleManual]);
+    const value = useMemo(() => ({ register, confirmLeave, discardChanges }), [register, confirmLeave, discardChanges]);
 
     return (
         <UnsavedChangesContext.Provider value={value}>
             {children}
             {(manualOpen || blocker.state === 'blocked') && (
-                <UnsavedChangesDialog onStay={stay} onLeave={leave} />
+                <UnsavedChangesDialog onStay={stay} onLeave={leave} transient={transient} />
             )}
         </UnsavedChangesContext.Provider>
     );
